@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 partial class Program
 {
@@ -17,8 +18,19 @@ partial class Program
         LimiteTentativas
     }
 
+    enum Conquista
+    {
+        PrimeiraVitoria,
+        VitoriaRapida,
+        MestreDaLogica,
+        ContraOTempo,
+        MultiplayerMaster,
+        SobPressao
+    }
     static Dificuldade dificuldadeAtual = Dificuldade.Medio;
     static ModoJogo modoAtual = ModoJogo.Normal;
+    static bool conquistasRegistradas = false;
+    static HashSet<Conquista> conquistasDesbloqueadas = new();
 
     static void Main()
     {
@@ -46,6 +58,9 @@ partial class Program
                     ConfigurarModoJogo();
                     break;
                 case "5":
+                    ExibirConquistas();
+                    break;
+                case "6":
                     sair = true;
                     break;
                 default:
@@ -76,11 +91,69 @@ partial class Program
         Console.WriteLine("2. Instruções");
         Console.WriteLine("3. Alterar Dificuldade");
         Console.WriteLine("4. Escolher Modo de Jogo");
-        Console.WriteLine("5. Sair");
-        Console.Write($"\nDificuldade atual: {dificuldadeAtual}");
-        Console.Write($"\nModo atual: {modoAtual}\n");
+        Console.WriteLine("5. Conquistas");
+        Console.WriteLine("6. Sair");
+
+        Console.WriteLine("\n" + new string('═', 30));
+
+        Console.Write($"\nDificuldade atual: ");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine(dificuldadeAtual);
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write($"Modo atual: ");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine(modoAtual);
+
+        ExibirBarraProgresso(conquistasDesbloqueadas.Count, Enum.GetValues(typeof(Conquista)).Length);
+        Console.WriteLine($" Conquistas: {conquistasDesbloqueadas.Count}/{Enum.GetValues(typeof(Conquista)).Length}");
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Write("\nEscolha uma opção: ");
         Console.ResetColor();
+    }
+
+    static void ExibirBarraProgresso(int atual, int total)
+    {
+        const int LARGURA = 20;
+        int progresso = (int)((double)atual / total * LARGURA);
+
+        Console.Write("\n[");
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write(new string('█', progresso));
+        Console.ForegroundColor = ConsoleColor.Gray;
+        Console.Write(new string('░', LARGURA - progresso));
+        Console.ResetColor();
+        Console.Write("]");
+    }
+
+    static void ExibirConquistas()
+    {
+        Console.Clear();
+        Console.WriteLine("=== 🏆 Conquistas ===\n");
+        foreach (Conquista conquista in Enum.GetValues(typeof(Conquista)))
+        {
+            bool desbloqueada = conquistasDesbloqueadas.Contains(conquista);
+            Console.ForegroundColor = desbloqueada ? ConsoleColor.Green : ConsoleColor.Gray;
+            Console.Write(desbloqueada ? "✅ " : "❌ ");
+            Console.WriteLine(conquista);
+        }
+        Console.ResetColor();
+        Console.WriteLine("\nPressione qualquer tecla para voltar...");
+        Console.ReadKey();
+    }
+
+    static void DesbloquearConquista(Conquista conquista)
+    {
+        if (!conquistasDesbloqueadas.Contains(conquista))
+        {
+            conquistasDesbloqueadas.Add(conquista);
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("\n🏆 Nova Conquista Desbloqueada!");
+            Console.WriteLine($"    {conquista}");
+            Console.ResetColor();
+            Thread.Sleep(2000);
+        }
     }
 
     static void ConfigurarModoJogo()
@@ -359,5 +432,36 @@ partial class Program
         }
         Console.WriteLine($"Dificuldade alterada para: {dificuldadeAtual}");
         Thread.Sleep(1500);
+    }
+
+    static void VerificarConquistas(int tentativas, bool vitoria)
+    {
+        if (vitoria)
+        {
+            if (!conquistasRegistradas)
+            {
+                DesbloquearConquista(Conquista.PrimeiraVitoria);
+                conquistasRegistradas = true;
+            }
+
+            if (tentativas <= 5)
+                DesbloquearConquista(Conquista.VitoriaRapida);
+
+            if (dificuldadeAtual == Dificuldade.Dificil)
+                DesbloquearConquista(Conquista.MestreDaLogica);
+
+            switch (modoAtual)
+            {
+                case ModoJogo.ContraRelogio:
+                    DesbloquearConquista(Conquista.ContraOTempo);
+                    break;
+                case ModoJogo.Multiplayer:
+                    DesbloquearConquista(Conquista.MultiplayerMaster);
+                    break;
+                case ModoJogo.LimiteTentativas:
+                    DesbloquearConquista(Conquista.SobPressao);
+                    break;
+            }
+        }
     }
 }
