@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 
 partial class Program
 {
@@ -257,6 +258,10 @@ partial class Program
         {
             tentativa = ProcessarTentativa(numeroSecreto, tentativa, out acertou);
         }
+        if (acertou)
+        {
+            VerificarConquistas(tentativa, true);
+        }
     }
 
     static void JogarModoContraRelogio()
@@ -298,6 +303,10 @@ partial class Program
 
             tentativa = ProcessarTentativa(numeroSecreto, tentativa, out acertou);
         }
+        if (acertou)
+        {
+            VerificarConquistas(tentativa, true);
+        }
     }
 
     static void JogarModoMultiplayer()
@@ -325,6 +334,10 @@ partial class Program
             Console.WriteLine($"\n👤 Vez do Jogador {jogadorAtual}");
             tentativa = ProcessarTentativa(numeroSecreto, tentativa, out acertou);
             jogadorAtual = jogadorAtual == 1 ? 2 : 1;
+        }
+        if (acertou)
+        {
+            VerificarConquistas(tentativa, true);
         }
 
         Console.WriteLine($"🏆 Jogador {(jogadorAtual == 1 ? 2 : 1)} venceu!");
@@ -356,6 +369,11 @@ partial class Program
         {
             Console.WriteLine($"\nTentativas restantes: {LIMITE_TENTATIVAS - tentativa}");
             tentativa = ProcessarTentativa(numeroSecreto, tentativa, out acertou);
+        }
+
+        if (acertou)
+        {
+            VerificarConquistas(tentativa, true);
         }
 
         if (!acertou)
